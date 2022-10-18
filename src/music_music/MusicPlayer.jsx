@@ -15,102 +15,24 @@ import {
     Table,
     IconButton,
     Center,
-    Tag,
-    Slider,
-    SliderTrack,
-    SliderFilledTrack,
-    Box,
-    SliderThumb,
-    Tooltip
 } from '@chakra-ui/react'
-import { MdBuild, MdSearch, MdLibraryMusic, MdGraphicEq } from "react-icons/md"
-import { GrFormPreviousLink, GrFormNextLink, GrNext } from "react-icons/gr"
-import { AiFillSound } from 'react-icons/ai'
+import { MdBuild, MdSearch, MdLibraryMusic} from "react-icons/md"
+import { GrFormPreviousLink, GrFormNextLink} from "react-icons/gr"
 import { RiLogoutCircleRFill } from 'react-icons/ri'
-import { BiSkipNext, BiSkipNextCircle } from 'react-icons/bi'
-import { ImLoop, ImLoop2, ImNext2, ImPrevious, ImPrevious2 } from 'react-icons/im'
-import { GiNextButton } from 'react-icons/gi'
-import { FaLess, FaPause, FaPlay } from 'react-icons/fa'
 import SongResult from './SongResult'
+import AudioPlayer from './AudioPlayer'
 
 function MusicPlayer(props) {
-    const [searchValue, setSearchValue] = React.useState('')
-    const [songUrl, setSongUrl] = React.useState('')
     const [songResults, setSongResults] = React.useState([])
     const [nextPage, setNextPage] = React.useState('')
     const [previousPage, setPreviousPage] = React.useState('')
-    const [playSongIcon, setPlaySongIcon] = React.useState(<FaPause />)
-    const [loopIconStyle, setLoopIconStyle] = React.useState('outline')
-    const [songDurationRange, setSongDurationRange] = React.useState('00:00 / 00:00')
-    const [songDuration, setSongDuration] = React.useState(0)
-    const [showVolumeTooltip, setShowVolumeTooltip] = React.useState(false)
-    const [volumeValue, setVolumeValue] = React.useState(100)
+    const [songSrcUrl, setSongSrcUrl] = React.useState('')
 
     function logout() {
         localStorage.removeItem('Token')
         props.setIsLoggedIn(false)
     }
 
-    function formatTime(seconds) {
-        if (!seconds) {
-            return '00:00'
-        }
-        let minutes
-        minutes = Math.floor(seconds / 60);
-        minutes = (minutes >= 10) ? minutes : "0" + minutes;
-        seconds = Math.floor(seconds % 60);
-        seconds = (seconds >= 10) ? seconds : "0" + seconds;
-        return minutes + ":" + seconds;
-    }
-
-    function changeVolume(volume) {
-        let audioTag = document.getElementById('audioTag')
-        setVolumeValue(volume)
-        audioTag.volume = volume
-    }
-
-    function togglePlaySong() {
-        let audioTag = document.getElementById('audioTag')
-        if (audioTag.src == 'http://localhost:3000/') {
-            return
-        }
-        if (playSongIcon.type.name == 'FaPlay') {
-            setPlaySongIcon(<FaPause />)
-            audioTag.play()
-        } else {
-            setPlaySongIcon(<FaPlay />)
-            audioTag.pause()
-        }
-    }
-
-    function songDurationRangeChanged() {
-        let audioTag = document.getElementById('audioTag')
-        setSongDurationRange(formatTime(audioTag.duration) + ' / ' + formatTime(audioTag.currentTime))
-    }
-
-    function toggleLoopAudio() {
-        let audiotag = document.getElementById('audioTag')
-        if (loopIconStyle == 'outline') {
-            audiotag.loop = true
-            setLoopIconStyle('solid')
-        } else {
-            audiotag.loop = false
-            setLoopIconStyle('outline')
-        }
-    }
-
-
-    const searchSong = (event) => {
-        setSearchValue(event.target.value)
-    }
-
-    function playSong() {
-        setPlaySongIcon(<FaPause />)
-    }
-
-    function pauseSong() {
-        setPlaySongIcon(<FaPlay />)
-    }
 
     function fetchSongs(url) {
         fetch(url)
@@ -159,7 +81,6 @@ function MusicPlayer(props) {
                         />
                         <Input
                             placeholder='Search song'
-                            onChange={searchSong}
                         />
                     </InputGroup>
                     {songResults.length > 0 &&
@@ -176,7 +97,7 @@ function MusicPlayer(props) {
                                         </Tr>
                                     </Thead>
                                     <Tbody>
-                                        {songResults.length > 0 && songResults.map(data => <SongResult setSongUrl={setSongUrl} data={data} key={data.id} />)}
+                                        {songResults.length > 0 && songResults.map(data => <SongResult setSongUrl={setSongSrcUrl} data={data} key={data.id} />)}
                                     </Tbody>
                                 </Table>
                             </TableContainer>
@@ -207,77 +128,7 @@ function MusicPlayer(props) {
                     }
                 </GridItem>
                 <GridItem rowSpan={1} colSpan={6}>
-                    <center>
-                        <IconButton
-                            colorScheme='blue'
-                            aria-label='Search database'
-                            variant='outline'
-                            icon={<ImPrevious2 />}
-                        />
-                        <IconButton
-                            colorScheme='blue'
-                            aria-label='Search database'
-                            variant='outline'
-                            icon={playSongIcon}
-                            onClick={() => togglePlaySong()}
-                        />
-                        <IconButton
-                            colorScheme='blue'
-                            aria-label='Search database'
-                            variant='outline'
-                            icon={<ImNext2 />}
-                        />
-                        <IconButton
-                            colorScheme='blue'
-                            aria-label='Search database'
-                            variant={loopIconStyle}
-                            onClick={() => toggleLoopAudio()}
-                            icon={<ImLoop2 />}
-                        />
-                        <Tag
-                            colorScheme="blue"
-                        >
-                            {songDurationRange}
-                        </Tag>
-                        <Slider
-                            w='10vw'
-                            min='0'
-                            max='1'
-                            step={0.01}
-                            defaultValue={100}
-                            onChange={(v) => changeVolume(v)}
-                            onMouseEnter={() => setShowVolumeTooltip(true)}
-                            onMouseLeave={() => setShowVolumeTooltip(false)}
-                        >
-                            <SliderTrack>
-                                <SliderFilledTrack />
-                            </SliderTrack>
-                            <Tooltip
-                                hasArrow
-                                bg='teal.500'
-                                color='white'
-                                placement='top'
-                                isOpen={showVolumeTooltip}
-                                label={Math.round(volumeValue * 100)}
-                            >
-                                <SliderThumb boxSize={5}>
-                                    <Box color='teal' as={AiFillSound} />
-                                </SliderThumb>
-
-                            </Tooltip>
-                        </Slider>
-
-                    </center>
-                    <audio id='audioTag'
-                        src={songUrl}
-                        controls
-                        autoPlay
-                        loop={true}
-                        onPlay={() => playSong()}
-                        onPause={() => pauseSong()}
-                        onDurationChange={() => songDurationRangeChanged()}
-                        onTimeUpdate={() => songDurationRangeChanged()}
-                    />
+                    <AudioPlayer songSrcUrl={songSrcUrl}/>
                 </GridItem>
             </Grid>
         </ChakraProvider>

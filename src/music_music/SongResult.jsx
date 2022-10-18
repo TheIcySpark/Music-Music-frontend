@@ -1,6 +1,5 @@
 import { IconButton, Image, Tag } from '@chakra-ui/react'
 import React from 'react'
-import MusicPlayer from './MusicPlayer'
 import { FaPlay } from "react-icons/fa"
 import {
     Tr,
@@ -11,12 +10,12 @@ function SongResult(props) {
     return (
         <Tr>
             <Td>
-                <IconButton 
-                    icon={<FaPlay />} 
-                    variant="outline" 
-                    colorScheme='blue' 
+                <IconButton
+                    icon={<FaPlay />}
+                    variant="outline"
+                    colorScheme='blue'
                     size="sm"
-                    onClick={()=> props.setSongUrl("http://localhost:8000/api/song_audio_file/" + props.data.id)}
+                    onClick={() => props.setSongUrl("http://localhost:8000/api/song_audio_file/" + props.data.id)}
                 />
             </Td>
             <Td>
