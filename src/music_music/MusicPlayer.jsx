@@ -27,10 +27,12 @@ function MusicPlayer(props) {
     const [nextPage, setNextPage] = React.useState('')
     const [previousPage, setPreviousPage] = React.useState('')
     const [songSrcUrl, setSongSrcUrl] = React.useState('')
+    const [currentSongData, setCurrentSongData] = React.useState(Object)
 
     function logout() {
         localStorage.removeItem('Token')
         props.setIsLoggedIn(false)
+        console.log(localStorage.getItem('Token'))
     }
 
 
@@ -97,7 +99,7 @@ function MusicPlayer(props) {
                                         </Tr>
                                     </Thead>
                                     <Tbody>
-                                        {songResults.length > 0 && songResults.map(data => <SongResult setSongUrl={setSongSrcUrl} data={data} key={data.id} />)}
+                                        {songResults.length > 0 && songResults.map(data => <SongResult setSongUrl={setSongSrcUrl} setCurrentSongData={setCurrentSongData} data={data} key={data.id} />)}
                                     </Tbody>
                                 </Table>
                             </TableContainer>
@@ -128,7 +130,7 @@ function MusicPlayer(props) {
                     }
                 </GridItem>
                 <GridItem rowSpan={1} colSpan={6}>
-                    <AudioPlayer songSrcUrl={songSrcUrl}/>
+                    <AudioPlayer songSrcUrl={songSrcUrl} currentSongData={currentSongData}/>
                 </GridItem>
             </Grid>
         </ChakraProvider>

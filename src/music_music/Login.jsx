@@ -19,6 +19,10 @@ function Login(props) {
 
     const [hiddenAlert, setHiddenAlert] = React.useState(true)
 
+    if(localStorage.getItem('Token') !== null){
+        props.setIsLoggedIn(true)
+    }
+
     function getAuthToken(username, password) {
         fetch('http://localhost:8000/api/auth/token/login', {
             method: 'POST',
@@ -32,7 +36,7 @@ function Login(props) {
             }
         })
             .then((response) => {
-                if (response.status != 200) {
+                if (response.status !== 200) {
                     setHiddenAlert(false)
                     setTimeout(() => {
                         setHiddenAlert(true)
@@ -41,7 +45,7 @@ function Login(props) {
                 return response.json()
             })
             .then((response) => {
-                if(response.auth_token == undefined){
+                if(response.auth_token === undefined){
                     return
                 }
                 localStorage.setItem('Token', 'Token ' + response.auth_token)

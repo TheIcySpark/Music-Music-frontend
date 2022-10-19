@@ -5,7 +5,7 @@ import MusicPlayer from './MusicPlayer'
 function Home(props) {
     const [isLoggedIn, setIsLoggedIn] = React.useState(false)
 
-    if(isLoggedIn || localStorage.getItem('Token') != null){
+    if(isLoggedIn){
         return(
             <MusicPlayer setIsLoggedIn={setIsLoggedIn}/>
         )

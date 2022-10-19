@@ -15,11 +15,13 @@ function SongResult(props) {
                     variant="outline"
                     colorScheme='blue'
                     size="sm"
-                    onClick={() => props.setSongUrl("http://localhost:8000/api/song_audio_file/" + props.data.id)}
+                    onClick={() =>{
+                        props.setSongUrl("http://localhost:8000/api/song_audio_file/" + props.data.id)
+                        props.setCurrentSongData(props.data)
+                    }}
                 />
             </Td>
             <Td>
-
                 <Image src={props.data.album[0].image_url} boxSize='50px' borderRadius="full" />
             </Td>
             <Td>
