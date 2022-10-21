@@ -3,7 +3,6 @@ import {
     Grid,
     GridItem,
     ChakraProvider,
-    Button,
     InputGroup,
     InputLeftElement,
     Input,
@@ -16,33 +15,26 @@ import {
     IconButton,
     Center,
 } from '@chakra-ui/react'
-import { MdBuild, MdSearch, MdLibraryMusic} from "react-icons/md"
-import { GrFormPreviousLink, GrFormNextLink} from "react-icons/gr"
-import { RiLogoutCircleRFill } from 'react-icons/ri'
+import { MdSearch } from "react-icons/md"
+import { GrFormPreviousLink, GrFormNextLink } from "react-icons/gr"
 import SongResult from './SongResult'
 import AudioPlayer from './AudioPlayer'
+import PlayerMenu from './PlayerMenu'
 
 function MusicPlayer(props) {
     const [songResults, setSongResults] = React.useState([])
-    const [nextPage, setNextPage] = React.useState('')
-    const [previousPage, setPreviousPage] = React.useState('')
+    const [nextPageSongResults, setNextPageSongResults] = React.useState('')
+    const [previousPageSongResults, setPreviousPageSongResults] = React.useState('')
     const [songSrcUrl, setSongSrcUrl] = React.useState('')
     const [currentSongData, setCurrentSongData] = React.useState(Object)
-
-    function logout() {
-        localStorage.removeItem('Token')
-        props.setIsLoggedIn(false)
-        console.log(localStorage.getItem('Token'))
-    }
-
 
     function fetchSongs(url) {
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
                 setSongResults(data.results)
-                setNextPage(data.next)
-                setPreviousPage(data.previous)
+                setNextPageSongResults(data.next)
+                setPreviousPageSongResults(data.previous)
             })
     }
 
@@ -56,24 +48,7 @@ function MusicPlayer(props) {
                 gap={4}
             >
                 <GridItem rowSpan={9} colSpan={1} overflowY="auto">
-                    <Button leftIcon={<MdBuild />} w="100%">Settings</Button>
-                    <Button
-                        mt={1}
-                        leftIcon={<MdLibraryMusic />}
-                        w="100%"
-                        onClick={() => fetchSongs("http://localhost:8000/api/songs/")}
-                    >
-                        All songs
-                    </Button>
-                    <Button
-                        mt={1}
-                        leftIcon={<RiLogoutCircleRFill />}
-                        w="100%"
-                        colorScheme="red"
-                        onClick={() => logout()}
-                    >
-                        Logout
-                    </Button>
+                    <PlayerMenu fetchSongs={fetchSongs} setIsLoggedIn={props.setIsLoggedIn}/>
                 </GridItem>
 
                 <GridItem rowSpan={9} colSpan={5} overflowY="auto" >
@@ -96,6 +71,7 @@ function MusicPlayer(props) {
                                             <Th>Song</Th>
                                             <Th>Artist</Th>
                                             <Th>Album</Th>
+                                            <Th></Th>
                                         </Tr>
                                     </Thead>
                                     <Tbody>
@@ -105,35 +81,35 @@ function MusicPlayer(props) {
                             </TableContainer>
                             <Center m={2}>
                                 <IconButton
-                                    disabled={previousPage == null}
-                                    value={previousPage}
+                                    disabled={previousPageSongResults == null}
+                                    value={previousPageSongResults}
                                     mr={1}
                                     colorScheme='blue'
                                     aria-label='Search database'
                                     variant="solid"
                                     size="lg"
                                     icon={<GrFormPreviousLink />}
-                                    onClick={() => fetchSongs(previousPage)}
+                                    onClick={() => fetchSongs(previousPageSongResults)}
                                 />
                                 <IconButton
-                                    value={nextPage}
-                                    disabled={nextPage == null}
+                                    value={nextPageSongResults}
+                                    disabled={nextPageSongResults == null}
                                     colorScheme='blue'
                                     aria-label='Search database'
                                     variant="solid"
                                     size="lg"
                                     icon={<GrFormNextLink />}
-                                    onClick={() => fetchSongs(nextPage)}
+                                    onClick={() => fetchSongs(nextPageSongResults)}
                                 />
                             </Center>
                         </>
                     }
                 </GridItem>
                 <GridItem rowSpan={1} colSpan={6}>
-                    <AudioPlayer songSrcUrl={songSrcUrl} currentSongData={currentSongData}/>
+                    <AudioPlayer songSrcUrl={songSrcUrl} currentSongData={currentSongData} />
                 </GridItem>
             </Grid>
-        </ChakraProvider>
+        </ChakraProvider >
     )
 }
 
