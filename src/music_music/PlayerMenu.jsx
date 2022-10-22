@@ -6,26 +6,7 @@ import { RiLogoutCircleRFill } from 'react-icons/ri'
 
 function PlayerMenu(props) {
     const [menuButtonsColors, setMenuButtonsColors] = React.useState([undefined, 'green'])
-    const [playlistShortcuts, setPlaylistShortcuts] = React.useState([])
     const { isOpen, onOpen, onClose } = useDisclosure()
-
-    const initialRef = React.useRef(null)
-    const finalRef = React.useRef(null)
-
-    function fetchPlaylistShortcuts() {
-        fetch('http://127.0.0.1:8000/api/playlists/', {
-            method: 'GET',
-            headers: {
-                'Authorization': localStorage.getItem('Token'),
-                'Content-Type': 'application/json'
-            }
-        }).then((response) => {
-            return response.json()
-        })
-            .then((response) => {
-                setPlaylistShortcuts(response)
-            })
-    }
 
     function logout() {
         fetch('http://127.0.0.1:8000/api/auth/token/logout', {
@@ -55,7 +36,8 @@ function PlayerMenu(props) {
                 'Content-Type': 'application/json'
             }
         }).then((response) => {
-            console.log(response)
+            props.fetchOwnPlaylists()
+            onClose()
         })
     }
 
@@ -67,7 +49,7 @@ function PlayerMenu(props) {
 
     useEffect(() => {
         props.fetchSongs("http://localhost:8000/api/songs/")
-        fetchPlaylistShortcuts()
+        props.fetchOwnPlaylists()
     }, [])
 
     return (
@@ -94,15 +76,16 @@ function PlayerMenu(props) {
             >
                 All songs
             </Button>
-            {playlistShortcuts.length > 0 && playlistShortcuts.map((data, index) =>
+            {props.ownPlaylists.length > 0 && props.ownPlaylists.map((data, index) =>
                 <Button
                     leftIcon={<BsMusicNoteList />}
                     w="100%"
                     mt={1}
                     colorScheme={menuButtonsColors[index + 2]}
-                    key={index}
+                    key={index + 'ownPlaylists'}
                     onClick={() => {
                         highlighSelectedButton(index + 2)
+                        props.fetchSongs("http://localhost:8000/api/playlists/" + data.id + '/')
                     }}
                 >
                     {data.name}
@@ -119,8 +102,6 @@ function PlayerMenu(props) {
                 New playlist
             </Button>
             <Modal
-                initialFocusRef={initialRef}
-                finalFocusRef={finalRef}
                 isOpen={isOpen}
                 onClose={onClose}
             >
@@ -131,12 +112,12 @@ function PlayerMenu(props) {
                     <ModalBody pb={6}>
                         <FormControl>
                             <FormLabel>Playlist name</FormLabel>
-                            <Input ref={initialRef} id='newPlaylistName' />
+                            <Input id='newPlaylistName' />
                         </FormControl>
 
                         <FormControl mt={4}>
                             <FormLabel>Type</FormLabel>
-                            <Select icon={<MdPublic />} id='newPlaylistType'>
+                            <Select icon={<MdPublic />} id='newPlaylistType'> 
                                 <option value={0}>Private</option>
                                 <option value={1}>Public</option>
                             </Select>

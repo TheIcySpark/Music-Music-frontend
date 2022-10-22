@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
     Grid,
     GridItem,
@@ -27,6 +27,8 @@ function MusicPlayer(props) {
     const [previousPageSongResults, setPreviousPageSongResults] = React.useState('')
     const [songSrcUrl, setSongSrcUrl] = React.useState('')
     const [currentSongData, setCurrentSongData] = React.useState(Object)
+    const [ownPlaylists, setOwnPlaylists] = React.useState([])
+
 
     function fetchSongs(url) {
         fetch(url)
@@ -36,6 +38,20 @@ function MusicPlayer(props) {
                 setNextPageSongResults(data.next)
                 setPreviousPageSongResults(data.previous)
             })
+    }
+
+    function fetchOwnPlaylists() {
+        fetch('http://127.0.0.1:8000/api/playlists/', {
+            method: 'GET',
+            headers: {
+                'Authorization': localStorage.getItem('Token'),
+                'Content-Type': 'application/json'
+            }
+        }).then((response) => {
+            return response.json()
+        }).then((response) => {
+            setOwnPlaylists(response)
+        })
     }
 
     return (
@@ -48,7 +64,12 @@ function MusicPlayer(props) {
                 gap={4}
             >
                 <GridItem rowSpan={9} colSpan={1} overflowY="auto">
-                    <PlayerMenu fetchSongs={fetchSongs} setIsLoggedIn={props.setIsLoggedIn}/>
+                    <PlayerMenu
+                        fetchOwnPlaylists={fetchOwnPlaylists}
+                        ownPlaylists={ownPlaylists}
+                        fetchSongs={fetchSongs}
+                        setIsLoggedIn={props.setIsLoggedIn}
+                    />
                 </GridItem>
 
                 <GridItem rowSpan={9} colSpan={5} overflowY="auto" >
@@ -75,7 +96,15 @@ function MusicPlayer(props) {
                                         </Tr>
                                     </Thead>
                                     <Tbody>
-                                        {songResults.length > 0 && songResults.map(data => <SongResult setSongUrl={setSongSrcUrl} setCurrentSongData={setCurrentSongData} data={data} key={data.id} />)}
+                                        {songResults.length > 0 && songResults.map((data, index) =>
+                                            <SongResult
+                                                setSongUrl={setSongSrcUrl}
+                                                setCurrentSongData={setCurrentSongData}
+                                                ownPlaylists={ownPlaylists}
+                                                data={data}
+                                                key={index + 'songResults'}
+                                            />
+                                        )}
                                     </Tbody>
                                 </Table>
                             </TableContainer>
@@ -107,6 +136,7 @@ function MusicPlayer(props) {
                 </GridItem>
                 <GridItem rowSpan={1} colSpan={6}>
                     <AudioPlayer songSrcUrl={songSrcUrl} currentSongData={currentSongData} />
+
                 </GridItem>
             </Grid>
         </ChakraProvider >

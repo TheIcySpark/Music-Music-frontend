@@ -25,7 +25,7 @@ function Login(props) {
         if (localStorage.getItem('Token') !== null) {
             props.setIsLoggedIn(true)
         }
-    })
+    }, [])
 
     function getAuthToken(username, password) {
         fetch('http://localhost:8000/api/auth/token/login', {

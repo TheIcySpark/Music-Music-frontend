@@ -1,5 +1,5 @@
-import { Box, Center, Grid, GridItem, IconButton, Image, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Tag, Tooltip } from '@chakra-ui/react'
-import React from 'react'
+import { Box, Center, Grid, GridItem, IconButton, Image, Select, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Tag, Tooltip } from '@chakra-ui/react'
+import React, { useEffect } from 'react'
 import { AiFillSound } from 'react-icons/ai'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { ImLoop2, ImNext2, ImPrevious2 } from 'react-icons/im'
@@ -48,7 +48,7 @@ function AudioPlayer(props) {
         }
     }
 
-    function songDurationCurrentTimeUpdate() {
+    function songDurationCurrentTimeUpdate(event) {
         setSongDurationRange(formatTime(audioTag.currentTime) + ' / ' + formatTime(audioTag.duration))
         setSongCurrentTime(audioTag.currentTime)
     }
@@ -104,12 +104,14 @@ function AudioPlayer(props) {
                 <GridItem rowSpan={1} colSpan={1}>
                     <Center h='100%'>
                         <IconButton
+                            isRound
                             colorScheme='blue'
                             aria-label='Search database'
                             variant='outline'
                             icon={<ImPrevious2 />}
                         />
                         <IconButton
+                            isRound
                             ml={2}
                             mr={2}
                             colorScheme='blue'
@@ -119,6 +121,7 @@ function AudioPlayer(props) {
                             onClick={() => togglePlaySong()}
                         />
                         <IconButton
+                            isRound
                             mr={2}
                             colorScheme='blue'
                             aria-label='Search database'
@@ -126,6 +129,7 @@ function AudioPlayer(props) {
                             icon={<ImNext2 />}
                         />
                         <IconButton
+                            isRound
                             colorScheme='blue'
                             aria-label='Search database'
                             variant={loopIconStyle}
@@ -176,6 +180,7 @@ function AudioPlayer(props) {
                             {songDurationRange.split('/')[0]}
                         </Tag>
                         <Slider
+                            tabIndex={-1}
                             ml={2}
                             mr={2}
                             w='50%'
@@ -184,6 +189,7 @@ function AudioPlayer(props) {
                             step={0.001}
                             defaultValue={0}
                             value={songCurrentTime}
+                            focusThumbOnChange={false}
                             onChange={(v) => songCurrentTimeChange(v)}
                             onChangeStart={(v) => {
                                 if (!audioTag.paused) {
@@ -220,8 +226,7 @@ function AudioPlayer(props) {
                 onPlay={() => playSong()}
                 onPause={() => pauseSong()}
                 onDurationChange={() => songDurationUpdate()}
-                onTimeUpdate={(v) => songDurationCurrentTimeUpdate(v)
-                }
+                onTimeUpdate={(e) => songDurationCurrentTimeUpdate(e)}
             />
         </>
     )
