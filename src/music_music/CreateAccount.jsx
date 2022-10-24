@@ -12,13 +12,16 @@ import {
     Link,
     Alert,
     AlertIcon,
-    Progress
+    Progress,
+    useToast
 } from '@chakra-ui/react'
 
 function CreateAccount(props) {
-
     const [hiddenAlert, setHiddenAlert] = React.useState(true)
     const [alertText, setAlertText] = React.useState('')
+
+    const toast = useToast()
+
 
     function postCreateAccount() {
         let username = document.getElementById('usernameInput').value
@@ -26,11 +29,14 @@ function CreateAccount(props) {
         let password = document.getElementById('passwordInput').value
         let passwordConfirm = document.getElementById('passwordConfirmInput').value
         if (password !== passwordConfirm) {
-            setHiddenAlert(false)
-            setAlertText('Password not match')
-            setTimeout(() => {
-                setHiddenAlert(true)
-            }, 4000)
+            toast({
+                title: 'Password error',
+                description: "Password not match",
+                status: 'error',
+                duration: 3000,
+                position: 'top-right',
+                isClosable: true,
+            })
             return
         }
         fetch('http://localhost:8000/api/create_account/', {
@@ -46,11 +52,14 @@ function CreateAccount(props) {
             },
         }).then((response) => {
             if (response.status !== 200) {
-                setHiddenAlert(false)
-                setAlertText('Username already exists')
-                setTimeout(() => {
-                    setHiddenAlert(true)
-                }, 4000)
+                toast({
+                    title: 'Account creation error',
+                    description: "Username or password error",
+                    status: 'error',
+                    duration: 3000,
+                    position: 'top-right',
+                    isClosable: true,
+                })
                 return
             }
             props.setCreateAccount(false)

@@ -15,6 +15,7 @@ function AudioPlayer(props) {
     const [playSongIcon, setPlaySongIcon] = React.useState(<FaPause />)
     const [wasSongPlaying, setWasSongPlaying] = React.useState(false)
     const [loopIconStyle, setLoopIconStyle] = React.useState('outline')
+    const [currentQueueSongIndex, setCurrentQueueSongIndex] = React.useState(0)
 
     const audioTag = document.getElementById('audioTag')
 
@@ -81,6 +82,29 @@ function AudioPlayer(props) {
         setPlaySongIcon(<FaPlay />)
     }
 
+    function playNextSong() {
+        let index = currentQueueSongIndex + 1
+        if (index >= props.songsSrcQueue.length) {
+            setCurrentQueueSongIndex(0)
+            index = 0
+        } else {
+            setCurrentQueueSongIndex(index)
+        }
+        props.setSongSrcUrl("http://localhost:8000/api/song_audio_file/" + props.songsSrcQueue[index].id)
+        props.setCurrentSongData(props.songsSrcQueue[index])
+    }
+
+    useEffect(() => {
+        if (Object.keys(props.currentSongData).length !== 0) {
+            let index = 0
+            while (props.songsSrcQueue[index].id !== props.currentSongData.id) {
+                index += 1
+            }
+            setCurrentQueueSongIndex(index)
+        }
+    }, [props.songsSrcQueue, props.currentSongData])
+
+
     return (
         <>
             <Grid
@@ -93,9 +117,9 @@ function AudioPlayer(props) {
                     <Center h='100%'>
                         {Object.keys(props.currentSongData).length !== 0 &&
                             <>
-                            <Tag p={5} mr={5} colorScheme='green'>
-                                {props.currentSongData.artist[0].name} : {props.currentSongData.name}
-                            </Tag>
+                                <Tag p={5} mr={5} colorScheme='green'>
+                                    {props.currentSongData.artist[0].name} : {props.currentSongData.name}
+                                </Tag>
                                 < Image src={props.currentSongData.album[0].image_url} boxSize='50px' borderRadius="full" />
                             </>
                         }
@@ -109,6 +133,17 @@ function AudioPlayer(props) {
                             aria-label='Search database'
                             variant='outline'
                             icon={<ImPrevious2 />}
+                            onClick={() => {
+                                let index = currentQueueSongIndex - 1
+                                if (index < 0) {
+                                    setCurrentQueueSongIndex(props.songsSrcQueue.length - 1)
+                                    index = props.songsSrcQueue.length - 1
+                                } else {
+                                    setCurrentQueueSongIndex(index)
+                                }
+                                props.setSongSrcUrl("http://localhost:8000/api/song_audio_file/" + props.songsSrcQueue[index].id)
+                                props.setCurrentSongData(props.songsSrcQueue[index])
+                            }}
                         />
                         <IconButton
                             isRound
@@ -127,6 +162,9 @@ function AudioPlayer(props) {
                             aria-label='Search database'
                             variant='outline'
                             icon={<ImNext2 />}
+                            onClick={() => {
+                                playNextSong()
+                            }}
                         />
                         <IconButton
                             isRound
@@ -227,6 +265,9 @@ function AudioPlayer(props) {
                 onPause={() => pauseSong()}
                 onDurationChange={() => songDurationUpdate()}
                 onTimeUpdate={(e) => songDurationCurrentTimeUpdate(e)}
+                onEnded={() => {
+                    playNextSong()
+                }}
             />
         </>
     )

@@ -12,13 +12,14 @@ import {
     Link,
     Alert,
     AlertIcon,
-    Progress
+    Progress,
+    Box,
+    useToast
 } from '@chakra-ui/react'
 import CreateAccount from './CreateAccount'
 
 function Login(props) {
-
-    const [hiddenAlert, setHiddenAlert] = React.useState(true)
+    const toast = useToast()
     const [createAccount, setCreateAccount] = React.useState(false)
 
     useEffect(() => {
@@ -40,11 +41,17 @@ function Login(props) {
             }
         })
             .then((response) => {
+                console.log(response)
                 if (response.status !== 200) {
-                    setHiddenAlert(false)
-                    setTimeout(() => {
-                        setHiddenAlert(true)
-                    }, 4000)
+                    toast({
+                        title: 'Credentials not found',
+                        description: "Please check your provided data",
+                        status: 'error',
+                        duration: 3000,
+                        position: 'top-right',
+                        isClosable: true,
+                    })
+                    return
                 }
                 return response.json()
             })
@@ -67,13 +74,6 @@ function Login(props) {
                     <Center>
                         <Text>Login</Text>
                     </Center>
-                    <Center>
-                        <Alert status='error' hidden={hiddenAlert}>
-                            <Progress size='xs' isIndeterminate />
-                            <AlertIcon />
-                            Credentials not found
-                        </Alert>
-                    </Center>
                     <Tag mt={2} mb={1}>Username</Tag>
                     <Input variant="filled" id='usernameInput' />
                     <Tag mt={2} mb={1}>Password</Tag>
@@ -88,13 +88,18 @@ function Login(props) {
                             Login
                         </Button>
                     </Center>
-                    <Link onClick={() => setCreateAccount(true)}>Don't have an account?</Link>
+                    <Link onClick={() => {
+                        setCreateAccount(true)
+                    }
+                    }>
+                        Don't have an account?
+                    </Link>
                 </Container>
             </ChakraProvider>
         )
-    }else{
-        return(
-            <CreateAccount setCreateAccount={setCreateAccount}/>
+    } else {
+        return (
+            <CreateAccount setCreateAccount={setCreateAccount} />
         )
     }
 }

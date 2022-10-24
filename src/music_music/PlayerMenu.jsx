@@ -1,4 +1,4 @@
-import { Button, FormControl, FormLabel, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, useDisclosure } from '@chakra-ui/react'
+import { Button, FormControl, FormLabel, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, useDisclosure, useToast } from '@chakra-ui/react'
 import React, { useEffect } from 'react'
 import { BsMusicNoteList } from 'react-icons/bs'
 import { MdBuild, MdLibraryMusic, MdPlaylistAdd, MdPublic } from 'react-icons/md'
@@ -6,7 +6,12 @@ import { RiLogoutCircleRFill } from 'react-icons/ri'
 
 function PlayerMenu(props) {
     const [menuButtonsColors, setMenuButtonsColors] = React.useState([undefined, 'green'])
-    const { isOpen, onOpen, onClose } = useDisclosure()
+
+    const { isOpen: isNewPlaylistOpen, onOpen: onNewPlaylistOpen, onClose: onNewPlaylistClose } = useDisclosure()
+    const { isOpen: isDeletePlaylistOpen, onOpen: onDeletePlaylistOpen, onClose: onDeletePlaylistClose } = useDisclosure()
+    const toast = useToast()
+
+    const [playlistSelectedToUpdate, setPlaylistSelectedToUpdate] = React.useState('')
 
     function logout() {
         fetch('http://127.0.0.1:8000/api/auth/token/logout', {
@@ -37,7 +42,7 @@ function PlayerMenu(props) {
             }
         }).then((response) => {
             props.fetchOwnPlaylists()
-            onClose()
+            onNewPlaylistClose()
         })
     }
 
@@ -83,29 +88,119 @@ function PlayerMenu(props) {
                     mt={1}
                     colorScheme={menuButtonsColors[index + 2]}
                     key={index + 'ownPlaylists'}
+                    onAuxClick={(event) => {
+                        event.preventDefault()
+                        onDeletePlaylistOpen()
+                        setPlaylistSelectedToUpdate(data)
+                    }}
                     onClick={() => {
                         highlighSelectedButton(index + 2)
                         props.fetchSongs("http://localhost:8000/api/playlists/" + data.id + '/')
                     }}
                 >
                     {data.name}
-                </Button>)
-            }
+                </Button>
+            )}
+            <Modal
+                isOpen={isDeletePlaylistOpen}
+                onClose={onDeletePlaylistClose}
+            >
+                <ModalOverlay backdropFilter='blur(10px) hue-rotate(90deg)' />
+                <ModalContent>
+                    <ModalHeader>Edit playlist</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody pb={6}>
+                        <FormControl>
+                            <FormLabel>Playlist name</FormLabel>
+                            <Input defaultValue={playlistSelectedToUpdate.name} id='updatePlaylistName' />
+                        </FormControl>
 
+                        <FormControl mt={4}>
+                            <FormLabel>Type</FormLabel>
+                            <Select defaultValue={playlistSelectedToUpdate.public + 0} icon={<MdPublic />} id='updatePlaylistType'>
+                                <option value={0}>Private</option>
+                                <option value={1}>Public</option>
+                            </Select>
+                        </FormControl>
+                    </ModalBody>
+
+                    <ModalFooter>
+                        <Button colorScheme='green' mr={3} onClick={() => {
+                            let playlistName = document.getElementById('updatePlaylistName').value
+                            let playlistType = document.getElementById('updatePlaylistType').value
+                            fetch('http://localhost:8000/api/playlists/' + playlistSelectedToUpdate.id + '/', {
+                                method: 'PATCH',
+                                body: JSON.stringify({
+                                    name: playlistName,
+                                    public: playlistType
+                                }),
+                                headers: {
+                                    'Authorization': localStorage.getItem('Token'),
+                                    'Content-Type': 'application/json'
+                                }
+                            }).then((response) =>{
+                                if(response.status >= 200 || response.status <= 200){
+                                    onDeletePlaylistClose()
+                                    props.fetchOwnPlaylists()
+                                    toast({
+                                        title: 'Updated',
+                                        description: "Playlist updated",
+                                        status: 'success',
+                                        duration: 3000,
+                                        position: 'top-right',
+                                        isClosable: true,
+                                    })
+                                }
+                            })
+                        }}>
+                            Update
+                        </Button>
+                        <Button
+                            colorScheme='red'
+                            onClick={() => {
+                                fetch('http://localhost:8000/api/playlists/' + playlistSelectedToUpdate.id + '/', {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': localStorage.getItem('Token'),
+                                    'Content-Type': 'application/json'
+                                }
+                            }).then((response) =>{
+                                if(response.status >= 200 || response.status <= 200){
+                                    props.fetchOwnPlaylists()
+                                    props.fetchSongs("http://localhost:8000/api/songs/")
+                                    highlighSelectedButton(1)
+                                    toast({
+                                        title: 'Deleted',
+                                        description: "Playlist deleted",
+                                        status: 'warning',
+                                        duration: 3000,
+                                        position: 'top-right',
+                                        isClosable: true,
+                                    })
+                                    onDeletePlaylistClose()
+
+                                }
+                            })
+                            }}>
+                            Delete playlist
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
             <Button
                 mt={1}
                 leftIcon={<MdPlaylistAdd />}
                 w="100%"
                 colorScheme='blue'
-                onClick={onOpen}
+                onClick={onNewPlaylistOpen}
             >
                 New playlist
             </Button>
             <Modal
-                isOpen={isOpen}
-                onClose={onClose}
+                isOpen={isNewPlaylistOpen}
+                onClose={onNewPlaylistClose}
             >
-                <ModalOverlay />
+                <ModalOverlay backdropFilter='blur(10px) hue-rotate(90deg)' />
                 <ModalContent>
                     <ModalHeader>Create new playlist</ModalHeader>
                     <ModalCloseButton />
@@ -117,7 +212,7 @@ function PlayerMenu(props) {
 
                         <FormControl mt={4}>
                             <FormLabel>Type</FormLabel>
-                            <Select icon={<MdPublic />} id='newPlaylistType'> 
+                            <Select icon={<MdPublic />} id='newPlaylistType'>
                                 <option value={0}>Private</option>
                                 <option value={1}>Public</option>
                             </Select>
@@ -125,15 +220,23 @@ function PlayerMenu(props) {
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button colorScheme='blue' mr={3} onClick={() => createPlaylist()}>
+                        <Button colorScheme='blue' mr={3} onClick={() => {
+                            toast({
+                                title: 'Created',
+                                description: "New playlist created",
+                                status: 'success',
+                                duration: 3000,
+                                position: 'top-right',
+                                isClosable: true,
+                            })
+                            createPlaylist()
+                        }}>
                             Save
                         </Button>
-                        <Button onClick={onClose}>Cancel</Button>
+                        <Button onClick={onNewPlaylistClose}>Cancel</Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-
-
             <Button
                 mt={1}
                 leftIcon={<RiLogoutCircleRFill />}

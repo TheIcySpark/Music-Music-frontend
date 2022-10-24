@@ -25,10 +25,10 @@ function MusicPlayer(props) {
     const [songResults, setSongResults] = React.useState([])
     const [nextPageSongResults, setNextPageSongResults] = React.useState('')
     const [previousPageSongResults, setPreviousPageSongResults] = React.useState('')
+    const [songsSrcQueue, setSongsSrcQueue] = React.useState([])
     const [songSrcUrl, setSongSrcUrl] = React.useState('')
     const [currentSongData, setCurrentSongData] = React.useState(Object)
     const [ownPlaylists, setOwnPlaylists] = React.useState([])
-
 
     function fetchSongs(url) {
         fetch(url)
@@ -37,6 +37,28 @@ function MusicPlayer(props) {
                 setSongResults(data.results)
                 setNextPageSongResults(data.next)
                 setPreviousPageSongResults(data.previous)
+                const songsSrcs = []
+                const urls = [url]
+                while (data.next) {
+                    urls.push(data.next)
+                    let new_data
+                    fetch(data.next)
+                        .then((response) => {
+                            new_data = response
+                        })
+                    data = new_data
+                }
+
+                urls.forEach((currentUrl) => {
+                    fetch(currentUrl)
+                        .then((response) => response.json())
+                        .then((data) => {
+                            data.results.forEach(element => {
+                                songsSrcs.push(element)
+                            });
+                        })
+                })
+                setSongsSrcQueue(songsSrcs)
             })
     }
 
@@ -63,7 +85,11 @@ function MusicPlayer(props) {
                 templateColumns='repeat(6, 1fr)'
                 gap={4}
             >
-                <GridItem rowSpan={9} colSpan={1} overflowY="auto">
+                <GridItem rowSpan={9} colSpan={1} overflowY="auto"
+                    onContextMenu={(event) => {
+                        event.preventDefault()
+                    }}
+                >
                     <PlayerMenu
                         fetchOwnPlaylists={fetchOwnPlaylists}
                         ownPlaylists={ownPlaylists}
@@ -135,7 +161,13 @@ function MusicPlayer(props) {
                     }
                 </GridItem>
                 <GridItem rowSpan={1} colSpan={6}>
-                    <AudioPlayer songSrcUrl={songSrcUrl} currentSongData={currentSongData} />
+                    <AudioPlayer
+                        songSrcUrl={songSrcUrl}
+                        setSongSrcUrl={setSongSrcUrl}
+                        currentSongData={currentSongData}
+                        setCurrentSongData={setCurrentSongData}
+                        songsSrcQueue={songsSrcQueue}
+                    />
 
                 </GridItem>
             </Grid>

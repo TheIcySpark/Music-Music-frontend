@@ -1,19 +1,19 @@
 import {
     Button, Divider, IconButton, Image, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
     ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverCloseButton, PopoverContent, PopoverFooter, PopoverHeader,
-    PopoverTrigger, Portal, Select, Stack, Tag, TagLeftIcon, Text, useDisclosure
+    PopoverTrigger, Select, Stack, Tag, TagLeftIcon, useDisclosure, useToast
 } from '@chakra-ui/react'
-import React, { memo, useEffect } from 'react'
-import { FaPlay, FaSave } from "react-icons/fa"
+import { FaPlay } from "react-icons/fa"
 import {
     Tr,
     Td
 } from '@chakra-ui/react'
 import { RiZoomInFill } from 'react-icons/ri'
-import { MdAccessibility, MdAccessible, MdAdd, MdAlbum, MdBlurOn, MdBook, MdDateRange, MdDelete, MdFormatListNumbered, MdLineStyle, MdMergeType, MdPerson, MdSave, MdStyle } from 'react-icons/md'
+import { MdAdd, MdAlbum, MdBook, MdDateRange, MdDelete, MdFormatListNumbered, MdPerson, MdSave, MdStyle } from 'react-icons/md'
 
 function SongResult(props) {
     const { isOpen, onOpen, onClose } = useDisclosure()
+    const toast = useToast()
 
     return (
         <Tr>
@@ -62,7 +62,7 @@ function SongResult(props) {
                     <ModalContent>
                         <ModalHeader>
                             {props.data.name}
-                            <Popover closeOnBlur={false}>
+                            <Popover>
                                 <PopoverTrigger>
                                     <IconButton
                                         isRound
@@ -99,7 +99,16 @@ function SongResult(props) {
                                                         song_id: props.data.id
                                                     })
                                                 }).then((response) => {
-                                                    console.log(response)
+                                                    if(response.status >= 200 || response.status <= 200){
+                                                        toast({
+                                                            title: 'Saved',
+                                                            description: props.data.name,
+                                                            status: 'success',
+                                                            duration: 3000,
+                                                            position: 'top-right',
+                                                            isClosable: true,
+                                                        })
+                                                    }
                                                 })
                                             }}
                                         />
@@ -107,6 +116,31 @@ function SongResult(props) {
                                             isRound
                                             icon={<MdDelete />}
                                             colorScheme='red'
+                                            onClick={() => {
+                                                let playlist_id = document.getElementById('infoPlaylistSelect').value
+                                                fetch('http://127.0.0.1:8000/api/delete_song_from_playlist/', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Authorization': localStorage.getItem('Token'),
+                                                        'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify({
+                                                        playlist_id: playlist_id,
+                                                        song_id: props.data.id
+                                                    })
+                                                }).then((response) => {
+                                                    if(response.status >= 200 || response.status <= 200){
+                                                        toast({
+                                                            title: 'Deleted',
+                                                            description: props.data.name,
+                                                            status: 'info',
+                                                            duration: 3000,
+                                                            position: 'top-right',
+                                                            isClosable: true,
+                                                        })
+                                                    }
+                                                })
+                                            }}
                                         />
                                     </PopoverFooter>
                                 </PopoverContent>
