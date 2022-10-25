@@ -6,7 +6,6 @@ import {
     InputGroup,
     InputLeftElement,
     Input,
-    TableContainer,
     Thead,
     Tr,
     Th,
@@ -37,8 +36,8 @@ function MusicPlayer(props) {
         setPlayingPlaylistUrl(currentPlaylistUrl)
     }
 
-    function fetchSongs(url) {
-        fetch(url)
+    function fetchSongs(url, query='') {
+        fetch(url + query)
             .then((response) => response.json())
             .then((data) => {
                 setSongResults(data.results)
@@ -139,35 +138,37 @@ function MusicPlayer(props) {
                         />
                         <Input
                             placeholder='Search song'
+                            onChange={(event) => {
+                                console.log(currentPlaylistUrl)
+                                fetchSongs(currentPlaylistUrl,'?name=' + event.target.value)
+                            }}
                         />
                     </InputGroup>
                     {songResults.length > 0 &&
                         <>
-                            <TableContainer w='100%'>
-                                <Table variant="striped" w={100}>
-                                    <Thead>
-                                        <Tr>
-                                            <Th w={10}></Th>
-                                            <Th></Th>
-                                            <Th>Song</Th>
-                                            <Th>Artist</Th>
-                                            <Th w='10px'>Album</Th>
-                                            <Th></Th>
-                                        </Tr>
-                                    </Thead>
-                                    <Tbody>
-                                        {songResults.length > 0 && songResults.map((data, index) =>
-                                            <SongResult
-                                                changeSongSrcUrl={changeSongSrcUrl}
-                                                setCurrentSongData={setCurrentSongData}
-                                                ownPlaylists={ownPlaylists}
-                                                data={data}
-                                                key={index + 'songResults'}
-                                            />
-                                        )}
-                                    </Tbody>
-                                </Table>
-                            </TableContainer>
+                            <Table variant="striped" size='lg'>
+                                <Thead>
+                                    <Tr>
+                                        <Th></Th>
+                                        <Th></Th>
+                                        <Th>Song</Th>
+                                        <Th>Artist</Th>
+                                        <Th>Album</Th>
+                                        <Th></Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    {songResults.length > 0 && songResults.map((data, index) =>
+                                        <SongResult
+                                            changeSongSrcUrl={changeSongSrcUrl}
+                                            setCurrentSongData={setCurrentSongData}
+                                            ownPlaylists={ownPlaylists}
+                                            data={data}
+                                            key={index + 'songResults'}
+                                        />
+                                    )}
+                                </Tbody>
+                            </Table>
                             <Center m={2}>
                                 <IconButton
                                     disabled={previousPageSongResults == null}

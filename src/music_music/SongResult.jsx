@@ -32,21 +32,21 @@ function SongResult(props) {
                     }}
                 />
             </Td>
-            <Td>
+            <Td p={1}>
                 <Image src={props.data.album[0].image_url} boxSize='50px' borderRadius="full" />
             </Td>
             <Td>
-                <Tag colorScheme="blue">
+                <Tag colorScheme="blue" p={2}>
                     {props.data.name}
                 </Tag>
             </Td>
-            <Td>
-                <Tag colorScheme="blue">
+            <Td >
+                <Tag colorScheme="blue" p={2}>
                     {props.data.artist[0].name}
                 </Tag>
             </Td>
-            <Td width={50}>
-                <Tag colorScheme="blue">
+            <Td>
+                <Tag colorScheme="blue" p={2}>
                     {props.data.album[0].name}
                 </Tag>
             </Td>
