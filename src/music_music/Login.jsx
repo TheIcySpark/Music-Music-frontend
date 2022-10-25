@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect} from 'react'
 import logo from './static/logo.svg'
 import {
     ChakraProvider,
@@ -10,10 +10,6 @@ import {
     Button,
     Tag,
     Link,
-    Alert,
-    AlertIcon,
-    Progress,
-    Box,
     useToast
 } from '@chakra-ui/react'
 import CreateAccount from './CreateAccount'

@@ -29,6 +29,13 @@ function MusicPlayer(props) {
     const [songSrcUrl, setSongSrcUrl] = React.useState('')
     const [currentSongData, setCurrentSongData] = React.useState(Object)
     const [ownPlaylists, setOwnPlaylists] = React.useState([])
+    const [playingPlaylistUrl, setPlayingPlaylistUrl] = React.useState('')
+    const [currentPlaylistUrl, setCurrentPlaylistUrl] = React.useState('')
+
+    function changeSongSrcUrl(url) {
+        setSongSrcUrl(url)
+        setPlayingPlaylistUrl(currentPlaylistUrl)
+    }
 
     function fetchSongs(url) {
         fetch(url)
@@ -37,28 +44,7 @@ function MusicPlayer(props) {
                 setSongResults(data.results)
                 setNextPageSongResults(data.next)
                 setPreviousPageSongResults(data.previous)
-                const songsSrcs = []
-                const urls = [url]
-                while (data.next) {
-                    urls.push(data.next)
-                    let new_data
-                    fetch(data.next)
-                        .then((response) => {
-                            new_data = response
-                        })
-                    data = new_data
-                }
-
-                urls.forEach((currentUrl) => {
-                    fetch(currentUrl)
-                        .then((response) => response.json())
-                        .then((data) => {
-                            data.results.forEach(element => {
-                                songsSrcs.push(element)
-                            });
-                        })
-                })
-                setSongsSrcQueue(songsSrcs)
+                setCurrentPlaylistUrl(url)
             })
     }
 
@@ -76,14 +62,62 @@ function MusicPlayer(props) {
         })
     }
 
+    useEffect(() => {
+        if (playingPlaylistUrl === '') {
+            return
+        }
+        const fetchData = async () => {
+            let songsSrcs = []
+            let first_url = playingPlaylistUrl
+            await fetch(playingPlaylistUrl)
+                .then((data) => data.json())
+                .then(async (data) => {
+                    while (data.previous !== null) {
+                        first_url = data.previous
+                        const new_data = await fetch(data.previous)
+                            .then((response) => response.json())
+                            .then((response) => {
+                                return response
+                            })
+                        data = new_data
+                    }
+
+                    const urls = [first_url]
+                    while (data.next !== null) {
+                        urls.push(data.next)
+                        const new_data = await fetch(data.next)
+                            .then((response) => {
+                                return response.json()
+                            })
+                            .then((response) => {
+                                return response
+                            })
+                        data = new_data
+                    }
+                    let i = 0
+                    while (i <= urls.length - 1) {
+                        const response = await fetch(urls[i])
+                            .then((response) => response.json())
+                            .then((data) => {
+                                return data.results
+                            })
+                        songsSrcs = songsSrcs.concat(response)
+                        i += 1
+                    }
+                    setSongsSrcQueue(songsSrcs)
+                })
+        }
+        fetchData()
+    }, [playingPlaylistUrl])
+
     return (
         <ChakraProvider>
             <Grid
                 h='100vh'
-                p={2}
+                p={1}
                 templateRows='repeat(10, 1fr)'
                 templateColumns='repeat(6, 1fr)'
-                gap={4}
+                gap={2}
             >
                 <GridItem rowSpan={9} colSpan={1} overflowY="auto"
                     onContextMenu={(event) => {
@@ -109,22 +143,22 @@ function MusicPlayer(props) {
                     </InputGroup>
                     {songResults.length > 0 &&
                         <>
-                            <TableContainer>
-                                <Table variant="striped">
+                            <TableContainer w='100%'>
+                                <Table variant="striped" w={100}>
                                     <Thead>
                                         <Tr>
-                                            <Th></Th>
+                                            <Th w={10}></Th>
                                             <Th></Th>
                                             <Th>Song</Th>
                                             <Th>Artist</Th>
-                                            <Th>Album</Th>
+                                            <Th w='10px'>Album</Th>
                                             <Th></Th>
                                         </Tr>
                                     </Thead>
                                     <Tbody>
                                         {songResults.length > 0 && songResults.map((data, index) =>
                                             <SongResult
-                                                setSongUrl={setSongSrcUrl}
+                                                changeSongSrcUrl={changeSongSrcUrl}
                                                 setCurrentSongData={setCurrentSongData}
                                                 ownPlaylists={ownPlaylists}
                                                 data={data}

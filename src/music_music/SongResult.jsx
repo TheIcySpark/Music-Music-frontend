@@ -1,7 +1,8 @@
 import {
-    Button, Divider, IconButton, Image, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
+    Box,
+    Button, Center, Divider, IconButton, Image, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
     ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverCloseButton, PopoverContent, PopoverFooter, PopoverHeader,
-    PopoverTrigger, Select, Stack, Tag, TagLeftIcon, useDisclosure, useToast
+    PopoverTrigger, Select, SimpleGrid, Stack, Tag, TagLeftIcon, useDisclosure, useToast
 } from '@chakra-ui/react'
 import { FaPlay } from "react-icons/fa"
 import {
@@ -25,7 +26,8 @@ function SongResult(props) {
                     colorScheme='blue'
                     size="sm"
                     onClick={() => {
-                        props.setSongUrl("http://localhost:8000/api/song_audio_file/" + props.data.id)
+                        props.changeSongSrcUrl('')
+                        props.changeSongSrcUrl("http://localhost:8000/api/song_audio_file/" + props.data.id)
                         props.setCurrentSongData(props.data)
                     }}
                 />
@@ -43,7 +45,7 @@ function SongResult(props) {
                     {props.data.artist[0].name}
                 </Tag>
             </Td>
-            <Td>
+            <Td width={50}>
                 <Tag colorScheme="blue">
                     {props.data.album[0].name}
                 </Tag>
@@ -61,91 +63,99 @@ function SongResult(props) {
                     <ModalOverlay backdropFilter='blur(10px) hue-rotate(90deg)' />
                     <ModalContent>
                         <ModalHeader>
-                            {props.data.name}
-                            <Popover>
-                                <PopoverTrigger>
-                                    <IconButton
-                                        isRound
-                                        icon={<MdAdd />}
-                                        colorScheme='orange'
-                                    />
-                                </PopoverTrigger>
-                                <PopoverContent>
-                                    <PopoverArrow />
-                                    <PopoverCloseButton />
-                                    <PopoverHeader>Select Playlist</PopoverHeader>
-                                    <PopoverBody >
-                                        <Select id='infoPlaylistSelect' autoFocus>
-                                            {props.ownPlaylists.length > 0 && props.ownPlaylists.map((data, index) =>
-                                                <option value={data.id} key={index + 'selectPlaylist'}>{data.name}</option>
-                                            )}
-                                        </Select>
-                                    </PopoverBody>
-                                    <PopoverFooter>
-                                        <IconButton
-                                            isRound
-                                            icon={<MdSave />}
-                                            colorScheme='green'
-                                            onClick={() => {
-                                                let playlist_id = document.getElementById('infoPlaylistSelect').value
-                                                fetch('http://127.0.0.1:8000/api/add_song_to_playlist/', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Authorization': localStorage.getItem('Token'),
-                                                        'Content-Type': 'application/json'
-                                                    },
-                                                    body: JSON.stringify({
-                                                        playlist_id: playlist_id,
-                                                        song_id: props.data.id
-                                                    })
-                                                }).then((response) => {
-                                                    if(response.status >= 200 || response.status <= 200){
-                                                        toast({
-                                                            title: 'Saved',
-                                                            description: props.data.name,
-                                                            status: 'success',
-                                                            duration: 3000,
-                                                            position: 'top-right',
-                                                            isClosable: true,
+                            <Stack direction='row'>
+                                <Box>
+                                {props.data.name}
+                                </Box>
+                                <Popover>
+                                    <PopoverTrigger>
+                                        <Center>
+                                            <IconButton
+                                                isRound
+                                                icon={<MdAdd />}
+                                                colorScheme='purple'
+                                            />
+                                        </Center>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <PopoverArrow />
+                                        <PopoverCloseButton />
+                                        <PopoverHeader>Select Playlist</PopoverHeader>
+                                        <PopoverBody >
+                                            <Select id='infoPlaylistSelect' autoFocus>
+                                                {props.ownPlaylists.length > 0 && props.ownPlaylists.map((data, index) =>
+                                                    <option value={data.id} key={index + 'selectPlaylist'}>{data.name}</option>
+                                                )}
+                                            </Select>
+                                        </PopoverBody>
+                                        <PopoverFooter >
+                                            <SimpleGrid columns={2} spacing={10}>
+                                                <IconButton
+                                                    isRound
+                                                    icon={<MdDelete />}
+                                                    colorScheme='red'
+                                                    onClick={() => {
+                                                        let playlist_id = document.getElementById('infoPlaylistSelect').value
+                                                        fetch('http://127.0.0.1:8000/api/delete_song_from_playlist/', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Authorization': localStorage.getItem('Token'),
+                                                                'Content-Type': 'application/json'
+                                                            },
+                                                            body: JSON.stringify({
+                                                                playlist_id: playlist_id,
+                                                                song_id: props.data.id
+                                                            })
+                                                        }).then((response) => {
+                                                            if (response.status >= 200 || response.status <= 200) {
+                                                                toast({
+                                                                    title: 'Deleted',
+                                                                    description: props.data.name,
+                                                                    status: 'info',
+                                                                    duration: 3000,
+                                                                    position: 'top-right',
+                                                                    isClosable: true,
+                                                                })
+                                                            }
                                                         })
-                                                    }
-                                                })
-                                            }}
-                                        />
-                                        <IconButton
-                                            isRound
-                                            icon={<MdDelete />}
-                                            colorScheme='red'
-                                            onClick={() => {
-                                                let playlist_id = document.getElementById('infoPlaylistSelect').value
-                                                fetch('http://127.0.0.1:8000/api/delete_song_from_playlist/', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Authorization': localStorage.getItem('Token'),
-                                                        'Content-Type': 'application/json'
-                                                    },
-                                                    body: JSON.stringify({
-                                                        playlist_id: playlist_id,
-                                                        song_id: props.data.id
-                                                    })
-                                                }).then((response) => {
-                                                    if(response.status >= 200 || response.status <= 200){
-                                                        toast({
-                                                            title: 'Deleted',
-                                                            description: props.data.name,
-                                                            status: 'info',
-                                                            duration: 3000,
-                                                            position: 'top-right',
-                                                            isClosable: true,
+                                                    }}
+                                                />
+                                                <IconButton
+                                                    isRound
+                                                    icon={<MdSave />}
+                                                    colorScheme='green'
+                                                    onClick={() => {
+                                                        let playlist_id = document.getElementById('infoPlaylistSelect').value
+                                                        fetch('http://127.0.0.1:8000/api/add_song_to_playlist/', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Authorization': localStorage.getItem('Token'),
+                                                                'Content-Type': 'application/json'
+                                                            },
+                                                            body: JSON.stringify({
+                                                                playlist_id: playlist_id,
+                                                                song_id: props.data.id
+                                                            })
+                                                        }).then((response) => {
+                                                            if (response.status >= 200 || response.status <= 200) {
+                                                                toast({
+                                                                    title: 'Saved',
+                                                                    description: props.data.name,
+                                                                    status: 'success',
+                                                                    duration: 3000,
+                                                                    position: 'top-right',
+                                                                    isClosable: true,
+                                                                })
+                                                            }
                                                         })
-                                                    }
-                                                })
-                                            }}
-                                        />
-                                    </PopoverFooter>
-                                </PopoverContent>
-                            </Popover>
+                                                    }}
+                                                />
+                                            </SimpleGrid>
 
+                                        </PopoverFooter>
+                                    </PopoverContent>
+                                </Popover>
+                            </Stack>
                         </ModalHeader>
                         <ModalCloseButton />
                         <ModalBody>

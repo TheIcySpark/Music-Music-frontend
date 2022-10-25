@@ -1,7 +1,7 @@
-import { Box, Center, Grid, GridItem, IconButton, Image, Select, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Tag, Tooltip } from '@chakra-ui/react'
-import React, { useEffect } from 'react'
+import { Box, Center, Grid, GridItem, IconButton, Image, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Tag, Tooltip } from '@chakra-ui/react'
+import React from 'react'
 import { AiFillSound } from 'react-icons/ai'
-import { FaPause, FaPlay } from 'react-icons/fa'
+import { FaPause, FaPlay, FaRandom } from 'react-icons/fa'
 import { ImLoop2, ImNext2, ImPrevious2 } from 'react-icons/im'
 
 
@@ -15,9 +15,17 @@ function AudioPlayer(props) {
     const [playSongIcon, setPlaySongIcon] = React.useState(<FaPause />)
     const [wasSongPlaying, setWasSongPlaying] = React.useState(false)
     const [loopIconStyle, setLoopIconStyle] = React.useState('outline')
-    const [currentQueueSongIndex, setCurrentQueueSongIndex] = React.useState(0)
+    const [randomIconStyle, setRandomIconStyle] = React.useState('outline')
+    const [randomSong, setRandomSong] = React.useState(false)
 
     const audioTag = document.getElementById('audioTag')
+
+    function getRandomInt(max) {
+        let min = 0
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
     function formatTime(seconds) {
         if (!seconds) {
@@ -82,33 +90,30 @@ function AudioPlayer(props) {
         setPlaySongIcon(<FaPlay />)
     }
 
+    function getCurrentQueueSongIndex() {
+        if(randomSong){
+            return getRandomInt(props.songsSrcQueue.length - 1)
+        }
+        let index = 0
+        while (props.songsSrcQueue[index].id !== props.currentSongData.id) {
+            index += 1
+        }
+        return index
+    }
+
     function playNextSong() {
-        let index = currentQueueSongIndex + 1
+        let index = getCurrentQueueSongIndex() + 1
         if (index >= props.songsSrcQueue.length) {
-            setCurrentQueueSongIndex(0)
             index = 0
-        } else {
-            setCurrentQueueSongIndex(index)
         }
         props.setSongSrcUrl("http://localhost:8000/api/song_audio_file/" + props.songsSrcQueue[index].id)
         props.setCurrentSongData(props.songsSrcQueue[index])
     }
 
-    useEffect(() => {
-        if (Object.keys(props.currentSongData).length !== 0) {
-            let index = 0
-            while (props.songsSrcQueue[index].id !== props.currentSongData.id) {
-                index += 1
-            }
-            setCurrentQueueSongIndex(index)
-        }
-    }, [props.songsSrcQueue, props.currentSongData])
-
-
     return (
         <>
             <Grid
-                p={2}
+                p={0}
                 templateRows='repeat(2, 1fr)'
                 templateColumns='repeat(3, 1fr)'
                 gap={0}
@@ -117,7 +122,7 @@ function AudioPlayer(props) {
                     <Center h='100%'>
                         {Object.keys(props.currentSongData).length !== 0 &&
                             <>
-                                <Tag p={5} mr={5} colorScheme='green'>
+                                <Tag p={3} mr={5} colorScheme='green'>
                                     {props.currentSongData.artist[0].name} : {props.currentSongData.name}
                                 </Tag>
                                 < Image src={props.currentSongData.album[0].image_url} boxSize='50px' borderRadius="full" />
@@ -131,15 +136,29 @@ function AudioPlayer(props) {
                             isRound
                             colorScheme='blue'
                             aria-label='Search database'
+                            variant={randomIconStyle}
+                            icon={<FaRandom />}
+                            onClick={() => {
+                                if (randomIconStyle === 'outline') {
+                                    setRandomSong(true)
+                                    setRandomIconStyle('solid')
+                                } else {
+                                    setRandomSong(false)
+                                    setRandomIconStyle('outline')
+                                }
+                            }}
+                        />
+                        <IconButton
+                            isRound
+                            colorScheme='blue'
+                            aria-label='Search database'
                             variant='outline'
                             icon={<ImPrevious2 />}
+                            ml={2}
                             onClick={() => {
-                                let index = currentQueueSongIndex - 1
+                                let index = getCurrentQueueSongIndex() - 1
                                 if (index < 0) {
-                                    setCurrentQueueSongIndex(props.songsSrcQueue.length - 1)
                                     index = props.songsSrcQueue.length - 1
-                                } else {
-                                    setCurrentQueueSongIndex(index)
                                 }
                                 props.setSongSrcUrl("http://localhost:8000/api/song_audio_file/" + props.songsSrcQueue[index].id)
                                 props.setCurrentSongData(props.songsSrcQueue[index])
